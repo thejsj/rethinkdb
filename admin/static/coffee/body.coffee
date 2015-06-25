@@ -67,10 +67,9 @@ class MainContainer extends Backbone.View
             servers: r.db(system_db).table('server_config').pluck('name', 'id').coerceTo("ARRAY")
             issues: driver.queries.issues_with_ids()
             num_issues: r.db(system_db).table('current_issues').count()
-            num_servers: r.db(system_db).table('server_config').count()
-            num_available_servers: r.db(system_db).table('server_status').filter( (server) ->
-                server("status").eq("connected")
-            ).count()
+            num_servers: r.db(system_db).table('table_config')('shards').concatMap(
+                (row)->row('replicas')).concatMap((x)->x).distinct().count()
+            num_available_servers: r.db(system_db).table('server_status').count()
             num_tables: r.db(system_db).table('table_config').count()
             num_available_tables: r.db(system_db).table('table_status')('status').filter( (status) ->
                 status("all_replicas_ready")
