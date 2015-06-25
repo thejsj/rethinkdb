@@ -100,7 +100,7 @@ render_table_availability = (issue) ->
             h "br"
             "No operations can be performed on this table until at least "
             "one replica is reachable."
-        ] if info.missing_servers.length == 0
+        ] if info.missing_servers.length > 0
     ]
 
 render_name_collision = (collision_type, issue) ->
