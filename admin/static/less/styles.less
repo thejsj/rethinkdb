@@ -900,8 +900,8 @@ TODO: retire this
         .flex();
         .panel {
             border: thin solid #dfdfdf;
-            .flex-grow(0);
-            .flex-shrink(0);
+            flex-grow: 0;
+            flex-shrink: 0;
             flex-basis: 233px;
             @bad: #e85250;
             @good: #3ba51a;
@@ -1041,7 +1041,7 @@ TODO: retire this
     }
 }
 
-#dashboard_container, #server-view {
+#server-view {
     .recent-logs {
         & > h2.title {
             border-bottom: thin solid #f0f0f0;
@@ -1080,7 +1080,7 @@ TODO: retire this
             border-bottom: thin solid #CCC;
             padding: 13px 15px;
             background: #fff;
-            .border-radius(4px 4px 0px 0px);
+            border-radius: 4px 4px 0px 0px;
 
             .element-type, h3.name {
                 display: inline-block;
@@ -1088,7 +1088,7 @@ TODO: retire this
             }
             .element-type {
                 background: #f7ae41;
-                .border-radius(2px);
+                border-radius: 2px;
                 padding: 4px 15px;
                 text-transform: uppercase;
                 margin-right: 20px;
@@ -1112,7 +1112,7 @@ TODO: retire this
         .element-list-container {
             padding: 0px 13px 12px 13px;
             background: #fafafa;
-            .border-radius(0px 0px 4px 4px);
+            border-radius: 0px 0px 4px 4px;
         }
 
         .table_container {
@@ -1120,7 +1120,7 @@ TODO: retire this
             height: @bar_height;
             background: #FFF;
             border: thin solid #cfcfcf;
-            .border-radius(3px);
+            border-radius: 3px;
             margin-top: 12px;
 
             .box-shadow(~"0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 3px rgba(0, 0, 0, 0.08)");
@@ -1136,7 +1136,7 @@ TODO: retire this
 
                 input[type="checkbox"] + label {
                     border: thin solid #cfcfcf;
-                    .border-radius(3px);
+                    border-radius: 3px;
                     padding: 7px;
                     display: inline-block;
                     position: relative;
@@ -1153,10 +1153,10 @@ TODO: retire this
             }
 
             .element-details {
-                .flex();
-                .flex-direction(row);
-                .flex-justify(space-between);
-                .flex-align-items(stretch);
+                display: flex;
+                flex-direction: row;
+                flex-justify: space-between;
+                align-items: stretch;
                 height: 100%;
 
                 @border_padding: 20px;
@@ -1171,8 +1171,8 @@ TODO: retire this
                     @offset: 8px;
                     padding: 0 @offset * 2;
                     border-left: thin solid #e4e4e4;
-                    .flex();
-                    .flex-align-items(center);
+                    display: flex;
+                    align-items: center;
                     height: 100%;
                 }
                 // mixin for icons
@@ -1190,7 +1190,7 @@ TODO: retire this
                     font-weight: bold;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    .flex-grow(2);
+                    flex-grow: 2;
                 }
                 .quick_info {
                     .with-icon('images/graph-icon.png');

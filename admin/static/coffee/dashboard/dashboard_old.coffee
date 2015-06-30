@@ -1,11 +1,12 @@
-# Copyright 2010-2012 RethinkDB, all rights reserved.
+# Copyright 2010-2015 RethinkDB, all rights reserved.
 
-app = require('./app.coffee')
+app = require('../app.coffee')
 driver = app.driver
 system_db = app.system_db
-models = require('./models.coffee')
-log_view = require('./log_view.coffee')
-vis = require('./vis.coffee')
+models = require('../models.coffee')
+log_view = require('../log_view.coffee')
+vis = require('../vis.coffee')
+
 
 r = require('rethinkdb')
 
@@ -14,15 +15,19 @@ r = require('rethinkdb')
 class DashboardContainer extends Backbone.View
     id: 'dashboard_container'
     template:
-        error: require('../handlebars/error-query.hbs')
+        error: require('../../handlebars/error-query.hbs')
 
     initialize: =>
         if not app.view_data_backup.dashboard_view_dashboard?
             app.view_data_backup.dashboard_view_dashboard = new models.Dashboard
         @dashboard = app.view_data_backup.dashboard_view_dashboard
+        @servers_panel = new servers_panel.View()
+        @tables_panel = new tables_panel.View()
 
         @dashboard_view = new DashboardMainView
             model: @dashboard
+            servers_panel: @servers_panel
+            tables_panel: @tables_panel
 
         @fetch_data()
 
@@ -67,6 +72,10 @@ class DashboardContainer extends Backbone.View
                         Q.num_sindex_issues(current_issues)
                     num_sindexes_constructing:
                         Q.num_sindexes_constructing(jobs)
+                    servers_panel:
+                        servers_panel.Model.query(A.server_status, A.table_config)
+                    tables_panel:
+                        tables_panel.Model.query(A.table_status)
                 )
         )
         dashboard_callback = (error, result) =>
@@ -78,6 +87,7 @@ class DashboardContainer extends Backbone.View
                 rerender = @error?
                 @error = null
                 @dashboard.set result
+                @servers_panel.model.set(result.servers_panel)
                 if rerender
                     @render()
 
@@ -100,17 +110,19 @@ class DashboardContainer extends Backbone.View
         super()
 
 class DashboardMainView extends Backbone.View
-    template: require('../handlebars/dashboard_view.hbs')
+    template: require('../../handlebars/dashboard_view.hbs')
     id: 'dashboard_main_view'
 
     events:
         'click .view-logs': 'show_all_logs'
 
-    initialize: =>
-        @cluster_status_availability = new ClusterStatusAvailability
-            model: @model
-        @cluster_status_redundancy = new ClusterStatusRedundancy
-            model: @model
+    initialize: (options) =>
+        # @cluster_status_availability = new ClusterStatusAvailability
+        #     model: @model
+        # @cluster_status_redundancy = new ClusterStatusRedundancy
+        #     model: @model
+        @servers_panel = options.servers_panel
+        @tables_panel = options.tables_panel
         @cluster_status_connectivity = new ClusterStatusConnectivity
             model: @model
         @cluster_status_sindexes = new ClusterStatusSindexes
@@ -144,8 +156,8 @@ class DashboardMainView extends Backbone.View
 
     render: =>
         @$el.html @template({})
-        @$('.availability').html @cluster_status_availability.render().$el
-        @$('.redundancy').html @cluster_status_redundancy.render().$el
+        @$('.availability').html @servers_panel.render().$el
+        @$('.redundancy').html @tables_panel.render().$el
         @$('.connectivity').html @cluster_status_connectivity.render().$el
         @$('.sindexes').html @cluster_status_sindexes.render().$el
 
@@ -157,8 +169,10 @@ class DashboardMainView extends Backbone.View
     remove: =>
         driver.stop_timer @stats_timer
 
-        @cluster_status_availability.remove()
-        @cluster_status_redundancy.remove()
+        #@cluster_status_availability.remove()
+        #@cluster_status_redundancy.remove()
+        @servers_panel.remove()
+        @tables_panel.remove()
         @cluster_status_connectivity.remove()
         @cluster_performance.remove()
         @cluster_status_sindexes.remove()
@@ -168,7 +182,7 @@ class DashboardMainView extends Backbone.View
 class ClusterStatusAvailability extends Backbone.View
     className: 'cluster-status-availability '
 
-    template: require('../handlebars/dashboard_availability.hbs')
+    template: require('../../handlebars/dashboard_availability.hbs')
 
     events:
         'click .show_details': 'show_popup'
@@ -233,7 +247,7 @@ class ClusterStatusAvailability extends Backbone.View
 class ClusterStatusRedundancy extends Backbone.View
     className: 'cluster-status-redundancy'
 
-    template: require('../handlebars/dashboard_redundancy.hbs')
+    template: require('../../handlebars/dashboard_redundancy.hbs')
 
     events:
         'click .show_details': 'show_popup'
@@ -298,7 +312,7 @@ class ClusterStatusRedundancy extends Backbone.View
 class ClusterStatusConnectivity extends Backbone.View
     className: 'cluster-status-connectivity '
 
-    template: require('../handlebars/dashboard_connectivity.hbs')
+    template: require('../../handlebars/dashboard_connectivity.hbs')
 
     events:
         'click .show_details': 'show_popup'
@@ -361,7 +375,7 @@ class ClusterStatusConnectivity extends Backbone.View
 class ClusterStatusSindexes extends Backbone.View
     className: 'cluster-status-sindexes'
 
-    template: require('../handlebars/dashboard_sindexes.hbs')
+    template: require('../../handlebars/dashboard_sindexes.hbs')
 
     initialize: =>
         @listenTo @model, 'change:num_sindex_issues', @render
