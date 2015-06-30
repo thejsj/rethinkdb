@@ -100,7 +100,7 @@ class TablesView extends vdom.VirtualDomView
         render_panel("Tables", problems_exist, elements)
 
 # class IndexesModel extends Backbone.Model
-#     @query: ''
+#      @query: foo
 
 
 
