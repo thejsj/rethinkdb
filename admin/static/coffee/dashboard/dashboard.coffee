@@ -20,8 +20,8 @@ class View extends vdom.VirtualDomView
         5000:
             servers: panels.ServersModel
             tables: panels.TablesModel
-            # indexes: panels.IndexesModel
-            # resources: panels.ResourcesModel
+            indexes: panels.IndexesModel
+            resources: panels.ResourcesModel
         # TODO: convert stats timer to this format
         # 1000:
         #     stats: models.Stats
@@ -63,12 +63,12 @@ class View extends vdom.VirtualDomView
                     h "div.panel.tables",
                         new vdom.BackboneViewWidget(=>
                             new panels.TablesView(model: @submodels.tables))
-                    # h "div.panel.indexes",
-                    #     new vdom.BackboneViewWidget(=>
-                    #         new panels.IndexesView(model: @submodels.indexes))
-                    # h "div.panel.resources",
-                    #     new vdom.BackboneViewWidget(=>
-                    #         new panels.ResourcesView(model: @submodels.resources))
+                    h "div.panel.indexes",
+                        new vdom.BackboneViewWidget(=>
+                            new panels.IndexesView(model: @submodels.indexes))
+                    h "div.panel.resources",
+                        new vdom.BackboneViewWidget(=>
+                            new panels.ResourcesView(model: @submodels.resources))
                 ]
                 h "div.section#cluster_performance_container",
                     new vdom.BackboneViewWidget(=>

@@ -46,7 +46,6 @@ class VirtualDomView extends Backbone.View
                 @submodels[name] = new model()
             callback = (error, result) =>
                 if error?
-                    console.log "Aw shit. an error: #{error}"
                     @query_error = error
                     @on_query_error(error)
                 else
@@ -58,6 +57,7 @@ class VirtualDomView extends Backbone.View
 
     on_query_error: (error) =>
         # Override to handle query errors specially
+        console.error(error)
         @render()
 
     on_query_subresult: (name, result) =>

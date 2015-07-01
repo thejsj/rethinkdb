@@ -54,9 +54,15 @@ class ServersView extends vdom.VirtualDomView
                 "#{num_servers_missing}"
         problems_exist = unknown_missing or num_servers_missing != 0
         elements = [
-            "#{model.servers_connected} servers connected"
-            "#{model.servers_unassigned.length} servers unassigned"
-            "#{servers_missing} servers missing"
+            ["#{model.servers_connected} ",
+             util.pluralize_noun('server', model.servers_connected),
+             " connected"]
+            ["#{model.servers_unassigned.length} ",
+             util.pluralize_noun('server', model.servers_unassigned.length),
+             " unassigned"]
+            ["#{servers_missing} ",
+             util.pluralize_noun('server', model.servers_missing.length),
+             " missing"]
         ]
         render_panel("Servers", problems_exist, elements)
 
@@ -99,10 +105,80 @@ class TablesView extends vdom.VirtualDomView
         ]
         render_panel("Tables", problems_exist, elements)
 
-# class IndexesModel extends Backbone.Model
-#      @query: foo
+class IndexesModel extends Backbone.Model
+    @query: (table_config=systable('table_config'), \
+             jobs=systable('jobs'), \
+             current_issues=systable('current_issues')) =>
+        num_sindexes:
+            table_config.map((table) ->
+                r.db(table('db')).table(table('name')).indexList().count()
+            ).sum()
+        sindexes_constructing:
+            jobs.filter(type: 'index_construction')('info').map((row) ->
+                db: row('db')
+                table: row('table')
+                index: row('index_name')
+                progress: row('progress')
+            ).coerceTo('array')
+        outdated_sindexes:
+            current_issues.filter(type: 'outdated_index')('info')('tables').map((row)->
+                table: row('table')
+                db: row('db')
+                indexes: row('indexes')
+            ).coerceTo('array')
 
+    defaults:
+        num_sindexes: 0
+        sindexes_constructing: []
+        outdated_sindexes: []
 
+class IndexesView extends vdom.VirtualDomView
+    render_vdom: ->
+        model = @model.toJSON()
+        problems_exist = model.outdated_sindexes.length > 0
+        elements = [
+            "#{model.num_sindexes} indexes"
+            "#{model.sindexes_constructing.length} indexes building"
+            "#{model.outdated_sindexes.length} outdated indexes"
+        ]
+        render_panel("Indexes", problems_exist, elements)
+
+class ResourcesModel extends Backbone.Model
+    @query: (stats=systable('stats'), \
+             table_status=systable('server_status')) =>
+        cache_used:
+            stats.filter((stat)->stat('id').contains('table_server'))('storage_engine')\
+                ('cache')('in_use_bytes').sum()
+        cache_total:
+            table_status('process')('cache_size_mb').map(
+                (row)->row.mul(1024*1024)).sum()
+        disk_used:
+            stats.filter((row)->row('id').contains('table_server'))\
+                ('storage_engine')('disk')('space_usage')
+                .map((data)->
+                    data('data_bytes').add( \
+                    data('garbage_bytes')).add( \
+                    data('metadata_bytes')).add( \
+                    data('preallocated_bytes'))
+                ).sum()
+    defaults:
+        cache_used: 0
+        cache_total: 0
+        disk_used: 0
+
+class ResourcesView extends vdom.VirtualDomView
+    render_vdom: ->
+        model = @model.toJSON()
+        problems_exist = false
+        cache_used = util.format_bytes(model.cache_used)
+        cache_total = util.format_bytes(model.cache_total)
+        disk_used = util.format_bytes(model.disk_used)
+        elements = [
+            "#{cache_used} cache in use"
+            "#{cache_total} cache total"
+            "#{disk_used} disk used"
+        ]
+        render_panel("Resources", problems_exist, elements)
 
 render_panel = (panel_name, problems_exist, elements) =>
     problems_class = if problems_exist
@@ -121,7 +197,7 @@ exports.ServersView = ServersView
 exports.ServersModel = ServersModel
 exports.TablesView = TablesView
 exports.TablesModel = TablesModel
-# exports.IndexesView = IndexesView
-# exports.IndexesModel = IndexesModel
-# exports.ResourcesView = ResourcesView
-# exports.ResourcesModel = ResourcesModel
+exports.IndexesView = IndexesView
+exports.IndexesModel = IndexesModel
+exports.ResourcesView = ResourcesView
+exports.ResourcesModel = ResourcesModel
